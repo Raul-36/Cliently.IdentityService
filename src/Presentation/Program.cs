@@ -1,14 +1,5 @@
+using System.Reflection.Metadata;
 using Microsoft.EntityFrameworkCore;
-using Infrastructure.Data;
-using Application;
-using Core.Businesses.Repositories.Base;
-using Infrastructure.Businesses.Repositories;
-using Core.InfoLists.Repositories.Base;
-using Infrastructure.InfoLists.Repositories;
-using Core.InfoTexts.Repositories.Base;
-using Infrastructure.InfoTexts.Repositories;
-using Core.DynamicItems.Repositories.Base;
-using Infrastructure.DynamicItems.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,20 +14,20 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Assem
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(AssemblyReference).Assembly);
 
-// Configure PostgreSQL DbContext
-builder.Services.AddDbContext<IdentityEFPostgreContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// // Configure PostgreSQL DbContext
+// builder.Services.AddDbContext<IdentityEFPostgreContext>(options =>
+//     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-using var scope = builder.Services.BuildServiceProvider().CreateScope();
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<IdentityEFPostgreContext>();
-    if (dbContext.Database.GetPendingMigrations().Any())
-    {
+// using var scope = builder.Services.BuildServiceProvider().CreateScope();
+// {
+//     var dbContext = scope.ServiceProvider.GetRequiredService<IdentityEFPostgreContext>();
+//     if (dbContext.Database.GetPendingMigrations().Any())
+//     {
         
-        dbContext.Database.Migrate();
-    }
-}
-// Register Repositories
+//         dbContext.Database.Migrate();
+//     }
+// }
+// // Register Repositories
 
 var app = builder.Build();
 
@@ -47,9 +38,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-ap.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
-ap.UseAuthorization();
+app.UseAuthorization();
 
 app.MapControllers();
 

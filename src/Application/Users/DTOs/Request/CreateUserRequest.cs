@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Core.Users.Models
+namespace Application.Users.DTOs.Request
 {
-    public class User
+    public class CreateUserRequest
     {
-        public Guid Id { get; set; }
         public required string Username { get; set; }
         public required string Email { get; set; }
-        public required string PasswordHash { get; set; }
+        public required string Password { get; set; }
     }
 }

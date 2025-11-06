@@ -7,6 +7,6 @@ namespace Application.Roles.Services.Base
 {
     public interface IRolesService
     {
-        
+        public Task<bool> CreateAsync(string roleName);
     }
 }

@@ -3,30 +3,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Common;
+using Application.Users.DTOs.Response;
 using Application.Users.Queries;
 using Application.Users.Services.Base;
+using AutoMapper;
 using Core.Users.Entities.Base;
 using MediatR;
 
 namespace Application.Users.Handlers
 {
-    public class GetUserByIdHandler : IRequestHandler<GetUserByIdQuery, Result<IUser>>
+    public class GetUserByIdHandler : IRequestHandler<GetUserByIdQuery, Result<UserResponse>>
     {
-        private readonly IUserService _userService;
+        private readonly IUserService userService;
+        private readonly IMapper mapper;
 
-        public GetUserByIdHandler(IUserService userService)
+
+        public GetUserByIdHandler(IUserService userService, IMapper mapper)
         {
-            _userService = userService;
+            this.userService = userService;
+            this.mapper = mapper;
         }
 
-        public async Task<Result<IUser>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+        public async Task<Result<UserResponse>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
         {
-            var user = await _userService.GetUserByIdAsync(request.Id);
+            var user = await userService.GetUserByIdAsync(request.Id);
             if (user == null)
             {
-                return Result<IUser>.Failure("User not found");
+                return Result<UserResponse>.Failure("User not found");
             }
-            return Result<IUser>.Success(user);
+            var mapped = mapper.Map<UserResponse>(user);
+            return Result<UserResponse>.Success(mapped);
         }
     }
 }

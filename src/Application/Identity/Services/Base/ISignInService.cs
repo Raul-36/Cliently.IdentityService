@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Application.SignIns.Services.Base
+namespace Application.Identity.Services.Base
 {
     public interface ISignInService
     {

@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Users.DTOs.Request;
-using Core.Users.Models;
+using Core.Users.Entities;
+using Core.Users.Entities.Base;
+
 namespace Application.Users.Services.Base
 {
     public interface IUserService
     {
-        Task<User> GetUserByIdAsync(Guid id);
-        Task<User> GetUserByEmailAsync(string id);
-        Task<User> CreateUserAsync(CreateUserRequest user);
-        Task<User> UpdateUserAsync(User user);
-        Task<bool> DeleteUserAsync(Guid id);
+        Task<IUser> GetUserByIdAsync(Guid id);
+        Task<IUser> GetUserByEmailAsync(string id);
+        Task<IEnumerable<IUser>> GetAllUsersAsync();
+        Task<IUser> CreateUserAsync(CreateUserRequest user);
+        Task<IUser> UpdateUserAsync(IUser user);
+        Task<bool> DeleteUserByIdAsync(Guid id);
     }
 }

@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Core.UserRoles.Models
+namespace Application.Users.DTOs.Request
 {
-    public class UserRole
+    public class UpdateUserRequest
     {
         public Guid Id { get; set; }
-        public Guid UserId { get; set; }
-        public Guid RoleId { get; set; }
+        public required string Email { get; set; }
     }
 }

@@ -69,7 +69,7 @@ namespace Application.Identity.Handlers
             var cenerateJWTReq = new GenerateJWTTokenRequest
             {
                User = mapper.Map<JWTUserRequest>(user),
-               Roles = roles.Select(r => r.Name)
+               Roles = roles.Select(r => r.Name ?? string.Empty)
             };
             var token = this.tokenGenerator.GenerateJWTToken(cenerateJWTReq);
 

@@ -8,8 +8,7 @@ namespace Core.Users.Entities.Base
     public interface IUser
     {
         Guid Id { get; set; }
-        string Username { get; set; }
-        string Email { get; set; }
-        string PasswordHash { get; set; }
+        string? Email { get; set; }
+        string? PasswordHash { get; set; }
     }
 }

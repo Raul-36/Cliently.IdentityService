@@ -9,6 +9,7 @@ using Infrastructure.Data;
 using Infrastructure.Identity.Services;
 using Infrastructure.Roles.Entities;
 using Infrastructure.Roles.Services;
+using Infrastructure.Tokens.Options;
 using Infrastructure.Tokens.Services;
 using Infrastructure.UserRoles.Services;
 using Infrastructure.Users.Entities;
@@ -19,65 +20,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Presentation.Data;
+using Presentation.Extensions;
 using Presentation.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
+builder.Services.InitSwagger();
+builder.Services.InitAuth(builder.Configuration);   
 
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
-    };
-});
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo()
-    {
-        Title = "Jwt Identity Service",
-        Version = "v1",
-    });
 
-    options.AddSecurityDefinition(
-        name: JwtBearerDefaults.AuthenticationScheme,
-        securityScheme: new OpenApiSecurityScheme()
-        {
-            Description = "Input yout JWT token here:",
-            In = ParameterLocation.Header,
-            Name = "Authorization",
-            Type = SecuritySchemeType.Http,
-            Scheme = JwtBearerDefaults.AuthenticationScheme,
-        });
-
-    options.AddSecurityRequirement(
-        new OpenApiSecurityRequirement() {
-                {
-                    new OpenApiSecurityScheme() {
-                        Reference = new OpenApiReference() {
-                            Id = JwtBearerDefaults.AuthenticationScheme,
-                            Type = ReferenceType.SecurityScheme
-                        }
-                    },
-                    new string[] {}
-                }
-        }
-    );
-});
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyReference).Assembly));
 
@@ -89,11 +43,13 @@ builder.Services.AddAutoMapper(
 // Configure Options
 builder.Services.Configure<FirstUsersOptions>(builder.Configuration.GetSection("FirstUsers"));
 builder.Services.Configure<RolesOptions>(builder.Configuration.GetSection("Roles"));
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtSettings"));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
+builder.Services.AddIdentityCore<ApplicationUser>()
+    .AddRoles<ApplicationRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
@@ -122,8 +78,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 
 app.MapControllers();
 

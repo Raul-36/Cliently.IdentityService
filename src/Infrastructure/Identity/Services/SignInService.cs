@@ -1,23 +1,21 @@
 using Application.Identity.Services.Base;
 using Infrastructure.Users.Entities;
-using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace Infrastructure.Identity.Services
 {
     public class SignInService : ISignInService
     {
-        private readonly SignInManager<ApplicationUser> signInManager;
         private readonly UserManager<ApplicationUser> userManager;
 
-        public SignInService(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
+        public SignInService(UserManager<ApplicationUser> userManager)
         {
-            this.signInManager = signInManager;
             this.userManager = userManager;
         }
 
@@ -29,8 +27,8 @@ namespace Infrastructure.Identity.Services
                 return false;
             }
 
-            var result = await signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: false);
-            return result.Succeeded;
+            var result = await userManager.CheckPasswordAsync(user, password);
+            return result;
         }
     }
 }

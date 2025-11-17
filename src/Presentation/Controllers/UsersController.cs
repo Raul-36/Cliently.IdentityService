@@ -22,8 +22,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
-        
+        [Authorize]
         public async Task<IActionResult> GetAllUsers()
         {
             Console.WriteLine("GetAllUsers called");

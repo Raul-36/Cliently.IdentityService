@@ -1,6 +1,8 @@
 using Application.Tokens.DTOs.Request;
 using Application.Tokens.Services.Base;
+using Infrastructure.Tokens.Options;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -14,17 +16,16 @@ namespace Infrastructure.Tokens.Services
 {
     public class TokenGeneratorService : ITokenGeneratorService
     {
-        private readonly IConfiguration configuration;
+        private readonly JwtOptions options;
 
-        public TokenGeneratorService(IConfiguration configuration)
+        public TokenGeneratorService(IOptions<JwtOptions> iOptions)
         {
-            this.configuration = configuration;
+            this.options = iOptions.Value;
         }
 
         public string GenerateJWTToken(GenerateJWTTokenRequest request)
         {
-            var jwtSettings = configuration.GetSection("JwtSettings");
-            var key = Encoding.ASCII.GetBytes(jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret not configured"));
+            var key = Encoding.ASCII.GetBytes(options.Key ?? throw new InvalidOperationException("JWT Secret not configured"));
 
             var claims = new List<Claim>
             {
@@ -44,9 +45,9 @@ namespace Infrastructure.Tokens.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(Convert.ToDouble(jwtSettings["ExpirationHours"])),
-                Issuer = jwtSettings["Issuer"],
-                Audience = jwtSettings["Audience"],
+                Expires = DateTime.UtcNow.AddMinutes(options.LifeTimeInMinutes),
+                Issuer = options.Issuer,
+                Audience = options.Audience,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 

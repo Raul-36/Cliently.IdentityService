@@ -12,7 +12,7 @@ namespace Application.Identity.Commands
 {
     public class RegisterCommand : IRequest<Result<IdentityResponse>>
     {
-        public required CreateUserRequest createUser { get; set; }
+        public required CreateUserRequest CreateUser { get; set; }
         public required string RoleName { get; set; }
     }
 }

@@ -27,7 +27,18 @@ namespace Application.Users.Handlers
 
         public async Task<Result<IEnumerable<UserResponse>>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
         {
-            var users = await userService.GetAllUsersAsync();
+            var getUsersResult = await userService.GetAllUsersAsync();
+            if (getUsersResult.IsSuccess == false)
+            {
+                return Result<IEnumerable<UserResponse>>.Failure(getUsersResult.Errors
+                ?? new List<string>() { "Unknown error at getting all users" });
+            }
+            var users = getUsersResult.Value;
+            if (users == null)
+            {
+                return Result<IEnumerable<UserResponse>>.Failure("Users not found, users is null");
+            }
+
             var mapped = mapper.Map<IEnumerable<UserResponse>>(users);
             return Result<IEnumerable<UserResponse>>.Success(mapped);
         }

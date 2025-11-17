@@ -27,7 +27,19 @@ namespace Application.Users.Handlers
         }
         public async Task<Result<UserResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await userService.CreateUserAsync(request.request);
+            var createResult = await userService.CreateUserAsync(request.request);
+            if (createResult.IsSuccess == false)
+            {
+                return Result<UserResponse>.Failure(createResult.Errors
+                ?? new List<string>() { "Unknown error at creating user" });
+            }
+
+            var user = createResult.Value;
+            if (user == null)
+            {
+                return Result<UserResponse>.Failure("Unknown error, user is null");
+            }
+
 
             var mapped = mapper.Map<UserResponse>(user);
             return Result<UserResponse>.Success(mapped);

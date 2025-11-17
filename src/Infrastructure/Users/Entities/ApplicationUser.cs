@@ -10,6 +10,5 @@ namespace Infrastructure.Users.Entities
 {
     public class ApplicationUser : IdentityUser<Guid>, IUser
     {
-        
     }
 }

@@ -47,35 +47,57 @@ namespace Application.Identity.Handlers
             if (getUserResult.IsSuccess == false)
             {
                 return Result<IdentityResponse>.Failure(getUserResult.Errors
-                ?? new List<string>() { "Unknown error" });
+                ?? new List<string>() { "Unknown error at getting user" });
             }
 
             var user = getUserResult.Value;
             if (user == null)
             {
-                return Result<IdentityResponse>.Failure($"Unknown error");
+                return Result<IdentityResponse>.Failure($"Unknown error, user is null");
             }
 
             var passwordCheckResult = await signInService.PasswordSignInAsync(user.Email, request.request.Password);
             if (passwordCheckResult == false)
                 return Result<IdentityResponse>.Failure("Incorrect email or password");
 
-            var userRoles = await userRoleService.GetByUserId(user.Id);
-            var rolesIds = userRoles.Select(r => r.RoleId);
-            var roles = await roleService.GetRoleByIdAsync(rolesIds);
+            var getUserRolesResult = await userRoleService.GetByUserId(user.Id);
+            if (getUserRolesResult.IsSuccess == false)
+            {
+                return Result<IdentityResponse>.Failure(getUserRolesResult.Errors
+                ?? new List<string>() { "Unknown error at getting user roles" });
+            }
 
-            var userResponse = mapper.Map<UserResponse>(user);
+            var userRoles = getUserRolesResult.Value;
+            if (userRoles == null)
+            {
+                return Result<IdentityResponse>.Failure("Unknown error, user roles is null");
+            }
+
+            var rolesIds = userRoles.Select(r => r.RoleId);
+            var getRolesResult = await roleService.GetRoleByIdAsync(rolesIds);
+            if (getRolesResult.IsSuccess == false)
+            {
+                return Result<IdentityResponse>.Failure(getRolesResult.Errors
+                ?? new List<string>() { "Unknown error at getting roles" });
+            }
+
+            var roles = getRolesResult.Value;
+            if (roles == null)
+            {
+                return Result<IdentityResponse>.Failure("Unknown error, roles is null");
+            }
+            
 
             var cenerateJWTReq = new GenerateJWTTokenRequest
             {
                User = mapper.Map<JWTUserRequest>(user),
-               Roles = roles.Select(r => r.Name ?? string.Empty)
+               Roles = roles.Select(r => r.Name ?? throw new InvalidOperationException("Role name is null"))
             };
             var token = this.tokenGenerator.GenerateJWTToken(cenerateJWTReq);
 
             var response = new IdentityResponse
             {
-                User = userResponse,
+                User = user,
                 Token = token
             };
 

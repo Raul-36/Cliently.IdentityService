@@ -26,10 +26,17 @@ namespace Application.Users.Handlers
 
         public async Task<Result<UserResponse>> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await this.userService.GetUserByIdAsync(request.request.Id);
+            var getUserResult = await this.userService.GetUserByIdAsync(request.request.Id);
+            if (getUserResult.IsSuccess == false)
+            {
+                return Result<UserResponse>.Failure(getUserResult.Errors
+                ?? new List<string>() { "Unknown error at getting user" });
+            }
+
+            var user = getUserResult.Value;
             if (user == null)
             {
-                return Result<UserResponse>.Failure("User not found");
+                return Result<UserResponse>.Failure("User not found, user is null");
             }
 
             user.Email = request.request.Email;

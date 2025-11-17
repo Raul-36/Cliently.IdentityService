@@ -37,29 +37,37 @@ namespace Application.Identity.Handlers
 
         public async Task<Result<IdentityResponse>> Handle(RegisterCommand request, CancellationToken cancellationToken)
         {
-            var createUserCommand = new CreateUserCommand
+            var CreateUserCommand = new CreateUserCommand
             {
-                request = request.createUser
+                request = request.CreateUser
             };
 
-            var createUserResult = await mediator.Send(createUserCommand);
+            var CreateUserResult = await mediator.Send(CreateUserCommand);
 
-            if (createUserResult.IsSuccess == false)
+            if (CreateUserResult.IsSuccess == false)
             {
-                return Result<IdentityResponse>.Failure(createUserResult.Errors
-                ?? new List<string>() { "Unknown error" });
+                return Result<IdentityResponse>.Failure(CreateUserResult.Errors
+                ?? new List<string>() { "Unknown error at creating user" });
             }
 
-            var user = createUserResult.Value;
+            var user = CreateUserResult.Value;
             if (user == null)
             {
-                return Result<IdentityResponse>.Failure("Unknown error");
+                return Result<IdentityResponse>.Failure("Unknown error, user is null");
             }
 
             List<string> roles = new List<string>();
             if (request.RoleName != null)
             {
-                IRole? role = await roleService.GetRoleByNameAsync(request.RoleName);
+                var getRoleResult = await roleService.GetRoleByNameAsync(request.RoleName);
+
+                if(getRoleResult.IsSuccess == false)
+                {
+                    return Result<IdentityResponse>.Failure(getRoleResult.Errors
+                    ?? new List<string>() { "Unknown error at getting role" });
+                }
+
+                var role = getRoleResult.Value;
 
                 if (role == null)
                     return Result<IdentityResponse>.Failure($"Role '{request.RoleName}' not found.");
@@ -67,8 +75,6 @@ namespace Application.Identity.Handlers
                 await userRoleService.AssignRoleToUserAsync(user.Id, role.Id);
                 roles.Add(request.RoleName);
             }
-
-            var userResponse = mapper.Map<UserResponse>(user);
 
             var cenerateJWTReq = new GenerateJWTTokenRequest
             {
@@ -80,7 +86,7 @@ namespace Application.Identity.Handlers
 
             var response = new IdentityResponse
             {
-                User = userResponse,
+                User = user,
                 Token = token
             };
 

@@ -18,7 +18,14 @@ namespace Application.Users.Handlers
         }
         public async Task<Result<bool>> Handle(DeleteUserByIdCommand request, CancellationToken cancellationToken)
         {
-            var result = await userService.DeleteUserByIdAsync(request.Id);
+            var deleteUserResult = await userService.DeleteUserByIdAsync(request.Id);
+            if (deleteUserResult.IsSuccess == false)
+            {
+                return Result<bool>.Failure(deleteUserResult.Errors
+                ?? new List<string>() { "Unknown error at deleting user" });
+            }
+
+            var result = deleteUserResult.Value;
             return Result<bool>.Success(result);
         }
     }

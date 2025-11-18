@@ -75,6 +75,7 @@ namespace Infrastructure.UserRoles.Services
             }
 
             var roles = await userManager.GetRolesAsync(user);
+            System.Console.WriteLine("Roles for user " + user.Email + ": " + string.Join(", ", roles));
             var userRoles = new List<IUserRole>();
             foreach (var roleName in roles)
             {

@@ -41,7 +41,7 @@ namespace Presentation.Controllers
             {
                 return Ok(result.Value);
             }
-            return Unauthorized(result.Errors);
+            return BadRequest(result.Errors);
         }
     }
 }

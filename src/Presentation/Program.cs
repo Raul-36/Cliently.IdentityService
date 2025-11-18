@@ -89,13 +89,13 @@ app.MapControllers();
 using (var seedScope = app.Services.CreateScope())
 {
     var serviceProvider = seedScope.ServiceProvider;
+    var roleService = serviceProvider.GetRequiredService<IRoleService>();
+    if ((await roleService.GetRoleByNameAsync("Admin")) is null)
+        await RoleSeeder.SeedRoles(serviceProvider);
 
     var userService = serviceProvider.GetRequiredService<IUserService>();
     if ((await userService.GetAllUsersAsync()).Value!.Count() == 0)
         await FirstUserSeeder.SeedUsers(serviceProvider);
 
-    var roleService = serviceProvider.GetRequiredService<IRoleService>();
-    if ((await roleService.GetRoleByNameAsync("Admin")) is null)
-        await RoleSeeder.SeedRoles(serviceProvider);
 }
 app.Run();

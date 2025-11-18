@@ -63,17 +63,30 @@ namespace Application.Identity.Handlers
             var getUserRolesResult = await userRoleService.GetByUserId(user.Id);
             if (getUserRolesResult.IsSuccess == false)
             {
+                System.Console.WriteLine("here");
                 return Result<IdentityResponse>.Failure(getUserRolesResult.Errors
                 ?? new List<string>() { "Unknown error at getting user roles" });
             }
+            System.Console.WriteLine("not here");
 
             var userRoles = getUserRolesResult.Value;
             if (userRoles == null)
             {
                 return Result<IdentityResponse>.Failure("Unknown error, user roles is null");
             }
+            System.Console.WriteLine("User Roles:");
+            foreach (var ur in userRoles)
+            {
+                System.Console.WriteLine("UserId: " + ur.UserId);
+                System.Console.WriteLine("RoleId: " + ur.RoleId);
+            }
 
             var rolesIds = userRoles.Select(r => r.RoleId);
+            System.Console.WriteLine("Roles Ids:");
+            foreach (var rid in rolesIds)
+            {
+                System.Console.WriteLine("RoleId: " + rid);
+            }
             var getRolesResult = await roleService.GetRoleByIdAsync(rolesIds);
             if (getRolesResult.IsSuccess == false)
             {

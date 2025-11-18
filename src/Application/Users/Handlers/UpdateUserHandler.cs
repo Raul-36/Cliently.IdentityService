@@ -41,7 +41,19 @@ namespace Application.Users.Handlers
 
             user.Email = request.request.Email;
 
-            var updatedUser = await this.userService.UpdateUserAsync(user);
+            var updatedUserResult = await this.userService.UpdateUserAsync(user);
+            if (updatedUserResult.IsSuccess == false)
+            {
+                return Result<UserResponse>.Failure(updatedUserResult.Errors
+                ?? new List<string>() { "Unknown error at updating user" });
+            }
+
+            var updatedUser = updatedUserResult.Value;
+            if (updatedUser == null)
+            {
+                return Result<UserResponse>.Failure("Unknown error, updated user is null");
+            }
+
             var mapped = mapper.Map<UserResponse>(updatedUser);
             return Result<UserResponse>.Success(mapped);
         }

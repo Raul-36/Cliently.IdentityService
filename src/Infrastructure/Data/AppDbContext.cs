@@ -18,6 +18,8 @@ namespace Infrastructure.Data
         {
             base.OnModelCreating(builder);
 
+            
+
         }
     }
 }

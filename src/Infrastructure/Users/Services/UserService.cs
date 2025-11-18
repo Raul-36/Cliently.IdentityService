@@ -3,6 +3,7 @@ using Application.Users.DTOs.Request;
 using Application.Users.Services.Base;
 using AutoMapper;
 using Core.Users.Entities.Base;
+using Infrastructure.Roles.Entities;
 using Infrastructure.Users.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -81,11 +82,13 @@ namespace Infrastructure.Users.Services
 
         public async Task<Result<IUser>> UpdateUserAsync(IUser user)
         {
-            var appUser = mapper.Map<ApplicationUser>(user);
-            appUser.UserName = user.Email;
-            
+            var existingUser = await userManager.FindByIdAsync(user.Id.ToString());
+            if (existingUser == null)
+                return Result<IUser>.Failure("User not found.");
 
-            var result = await userManager.UpdateAsync(appUser);
+            existingUser.Email = user.Email;
+
+            var result = await userManager.UpdateAsync(existingUser);
 
             if (result.Succeeded == false)
             {
@@ -93,7 +96,7 @@ namespace Infrastructure.Users.Services
                 return Result<IUser>.Failure(errors);
             }
 
-            return Result<IUser>.Success(appUser);
+            return Result<IUser>.Success(existingUser);
         }
     }
 }

@@ -26,7 +26,14 @@ namespace Application.Users.Handlers
 
         public async Task<Result<UserResponse>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
         {
-            var user = await userService.GetUserByIdAsync(request.Id);
+            var getUserResult = await userService.GetUserByIdAsync(request.Id);
+            if (getUserResult.IsSuccess == false)
+            {
+                return Result<UserResponse>.Failure(getUserResult.Errors
+                ?? new List<string>() { "Unknown error at getting user" });
+            }
+
+            var user = getUserResult.Value;
             if (user == null)
             {
                 return Result<UserResponse>.Failure("User not found");

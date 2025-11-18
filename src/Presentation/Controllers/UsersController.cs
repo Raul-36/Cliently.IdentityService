@@ -22,7 +22,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        [Authorize (Roles = "Admin")]
         public async Task<IActionResult> GetAllUsers()
         {
             Console.WriteLine("GetAllUsers called");
@@ -32,6 +32,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize (Roles = "Admin")]
         public async Task<IActionResult> GetUserById(Guid id)
         {
             var query = new GetUserByIdQuery { Id = id };

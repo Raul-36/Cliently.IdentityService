@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Application.Common;
 using Application.Identity.Commands;
 using Application.Identity.DTOs.Response;
 using Application.Roles.Services.Base;
@@ -11,14 +9,12 @@ using Application.Tokens.Services.Base;
 using Application.UserRoles.Services.Base;
 using Application.Users.Commands;
 using Application.Users.DTOs.Request;
-using Application.Users.DTOs.Response;
 using AutoMapper;
-using Core.Roles.Entities.Base;
 using MediatR;
 
 namespace Application.Identity.Handlers
 {
-    public class RegisterHandler : IRequestHandler<RegisterCommand, Result<IdentityResponse>>
+    public class RegisterHandler : IRequestHandler<RegisterCommand, IdentityResponse>
     {
         private readonly IRoleService roleService;
         private readonly IUserRoleService userRoleService;
@@ -35,54 +31,29 @@ namespace Application.Identity.Handlers
             this.mapper = mapper;
         }
 
-        public async Task<Result<IdentityResponse>> Handle(RegisterCommand request, CancellationToken cancellationToken)
+        public async Task<IdentityResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
         {
-            var CreateUserCommand = new CreateUserCommand
+            var createUserCommand = new CreateUserCommand
             {
                 request = request.CreateUser
             };
 
-            var CreateUserResult = await mediator.Send(CreateUserCommand);
+            var user = await mediator.Send(createUserCommand, cancellationToken);
 
-            if (CreateUserResult.IsSuccess == false)
+            var roles = new List<string>();
+            if (!string.IsNullOrEmpty(request.RoleName))
             {
-                return Result<IdentityResponse>.Failure(CreateUserResult.Errors
-                ?? new List<string>() { "Unknown error at creating user" });
-            }
-
-            var user = CreateUserResult.Value;
-            if (user == null)
-            {
-                return Result<IdentityResponse>.Failure("Unknown error, user is null");
-            }
-
-            List<string> roles = new List<string>();
-            if (request.RoleName != null)
-            {
-                var getRoleResult = await roleService.GetRoleByNameAsync(request.RoleName);
-
-                if(getRoleResult.IsSuccess == false)
-                {
-                    return Result<IdentityResponse>.Failure(getRoleResult.Errors
-                    ?? new List<string>() { "Unknown error at getting role" });
-                }
-
-                var role = getRoleResult.Value;
-
-                if (role == null)
-                    return Result<IdentityResponse>.Failure($"Role '{request.RoleName}' not found.");
-
+                var role = await roleService.GetRoleByNameAsync(request.RoleName);
                 await userRoleService.AssignRoleToUserAsync(user.Id, role.Id);
                 roles.Add(request.RoleName);
             }
 
-            var cenerateJWTReq = new GenerateJWTTokenRequest
+            var generateJWTReq = new GenerateJWTTokenRequest
             {
-               User = mapper.Map<JWTUserRequest>(user),
-               Roles = roles
+                User = mapper.Map<JWTUserRequest>(user),
+                Roles = roles
             };
-            var token = this.tokenGenerator.GenerateJWTToken(cenerateJWTReq);
-
+            var token = tokenGenerator.GenerateJWTToken(generateJWTReq);
 
             var response = new IdentityResponse
             {
@@ -90,7 +61,7 @@ namespace Application.Identity.Handlers
                 Token = token
             };
 
-            return Result<IdentityResponse>.Success(response);
+            return response;
         }
     }
 }

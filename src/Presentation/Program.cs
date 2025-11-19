@@ -94,7 +94,7 @@ using (var seedScope = app.Services.CreateScope())
         await RoleSeeder.SeedRoles(serviceProvider);
 
     var userService = serviceProvider.GetRequiredService<IUserService>();
-    if ((await userService.GetAllUsersAsync()).Value!.Count() == 0)
+    if ((await userService.GetAllUsersAsync()).Count() == 0)
         await FirstUserSeeder.SeedUsers(serviceProvider);
 
 }

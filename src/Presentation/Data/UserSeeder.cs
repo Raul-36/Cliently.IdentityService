@@ -1,14 +1,12 @@
 using Application.Identity.Commands;
-using Infrastructure.Users.Entities;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Presentation.Options;
 using System.Threading.Tasks;
 using System;
-using System.Collections.Generic;
+using Application.Common.Exceptions;
 
 namespace Presentation.Data
 {
@@ -27,17 +25,20 @@ namespace Presentation.Data
 
             foreach (var userCommand in options.Value.Users)
             {
-                var result = await mediator.Send(userCommand);
-                if (result.IsSuccess)
+                try
                 {
+                    await mediator.Send(userCommand);
                     logger.LogInformation($"User {userCommand.CreateUser.Email} created successfully.");
                 }
-                else
+                catch (BadRequestException ex)
                 {
-                    logger.LogError($"Failed to create user {userCommand.CreateUser.Email}. Errors: {string.Join(", ", result.Errors ?? new List<string>{"Unknown errors at creating user."})}");
+                    logger.LogError($"Failed to create user {userCommand.CreateUser.Email}. Errors: {string.Join(", ", ex.Errors)}");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError($"Failed to create user {userCommand.CreateUser.Email}. Error: {ex.Message}");
                 }
             }
-        
         }
     }
 }

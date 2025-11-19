@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using Application.Users.Queries;
 using Application.Users.Commands;
 using Application.Users.DTOs.Request;
+using System.Security.Claims;
+using Application.Users.Exceptions;
+using Application.Common.Exceptions;
 
 namespace Presentation.Controllers
 {
@@ -25,47 +28,99 @@ namespace Presentation.Controllers
         [Authorize (Roles = "Admin")]
         public async Task<IActionResult> GetAllUsers()
         {
-            Console.WriteLine("GetAllUsers called");
-            var query = new GetAllUsersQuery();
-            var result = await mediator.Send(query);
-            return Ok(result.Value);
+            try
+            {
+                var query = new GetAllUsersQuery();
+                var result = await mediator.Send(query);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         [HttpGet("{id}")]
-        [Authorize (Roles = "Admin")]
         public async Task<IActionResult> GetUserById(Guid id)
         {
-            var query = new GetUserByIdQuery { Id = id };
-            var result = await mediator.Send(query);
-            if (result.IsSuccess && result.Value != null)
+            var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (Guid.TryParse(currentUserIdString, out var currentUserId) == false)
+                return Unauthorized();
+
+            var isAdmin = User.IsInRole("Admin");
+
+            if (isAdmin == false && currentUserId != id)
+                return Forbid();
+
+
+            try
             {
-                return Ok(result.Value);
+                var query = new GetUserByIdQuery { Id = id };
+                var result = await mediator.Send(query);
+                return Ok(result);
             }
-            return NotFound();
+            catch (UserNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         [HttpPut()]
         public async Task<IActionResult> UpdateUser(UpdateUserRequest request)
         {   
-            var command = new UpdateUserCommand { request = request };
-            var result = await mediator.Send(command);
-            if (result.IsSuccess)
+            var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (Guid.TryParse(currentUserIdString, out var currentUserId) == false)
+                return Unauthorized();
+
+            if (currentUserId != request.Id)
+                return Forbid();
+
+            try
             {
-                return Ok(result.Value);
+                var command = new UpdateUserCommand { request = request };
+                var result = await mediator.Send(command);
+                return Ok(result);
             }
-            return BadRequest(result.Errors);
+            catch (UserNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (BadRequestException ex)
+            {
+                return BadRequest(ex.Errors);
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
-            var command = new DeleteUserByIdCommand { Id = id };
-            var result = await mediator.Send(command);
-            if (result.IsSuccess)
+            var currentUserIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (Guid.TryParse(currentUserIdString, out var currentUserId) == false)
             {
+                return Unauthorized();
+            }
+
+            var isAdmin = User.IsInRole("Admin");
+
+            if (isAdmin == false && currentUserId != id)
+            {
+                return Forbid();
+            }
+            if (isAdmin == true && currentUserId == id)
+            {
+                return Forbid();
+            }
+
+            try
+            {
+                var command = new DeleteUserByIdCommand { Id = id };
+                await mediator.Send(command);
                 return NoContent();
             }
-            return BadRequest(result.Errors);
+            catch (UserNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
     }
 }

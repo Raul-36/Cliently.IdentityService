@@ -1,48 +1,29 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Application.Common;
-using Application.Roles.Services.Base;
-using Application.UserRoles.Services.Base;
 using Application.Users.Commands;
 using Application.Users.DTOs.Response;
 using Application.Users.Services.Base;
 using AutoMapper;
-using Core.Roles.Entities.Base;
-using Core.Users.Entities;
-using Core.Users.Entities.Base;
 using MediatR;
 
 namespace Application.Users.Handlers
 {
-    public class CreateUserHandler : IRequestHandler<CreateUserCommand, Result<UserResponse>>
+    public class CreateUserHandler : IRequestHandler<CreateUserCommand, UserResponse>
     {
         private readonly IUserService userService;
-       private readonly IMapper mapper;
+        private readonly IMapper mapper;
+
         public CreateUserHandler(IUserService userService, IMapper mapper)
         {
             this.userService = userService;
             this.mapper = mapper;
         }
-        public async Task<Result<UserResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+
+        public async Task<UserResponse> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
-            var createResult = await userService.CreateUserAsync(request.request);
-            if (createResult.IsSuccess == false)
-            {
-                return Result<UserResponse>.Failure(createResult.Errors
-                ?? new List<string>() { "Unknown error at creating user" });
-            }
-
-            var user = createResult.Value;
-            if (user == null)
-            {
-                return Result<UserResponse>.Failure("Unknown error, user is null");
-            }
-
-
+            var user = await userService.CreateUserAsync(request.request);
             var mapped = mapper.Map<UserResponse>(user);
-            return Result<UserResponse>.Success(mapped);
+            return mapped;
         }
     }
 }

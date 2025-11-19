@@ -1,12 +1,10 @@
+using Application.Identity.Exceptions;
 using Application.Identity.Services.Base;
+using Application.Users.Exceptions;
+using Core.Users.Entities;
 using Infrastructure.Users.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using System.Threading.Tasks;
 
 namespace Infrastructure.Identity.Services
 {
@@ -23,11 +21,10 @@ namespace Infrastructure.Identity.Services
         {
             var user = await userManager.FindByEmailAsync(email);
             if (user == null)
-            {
                 return false;
-            }
 
             var result = await userManager.CheckPasswordAsync(user, password);
+
             return result;
         }
     }

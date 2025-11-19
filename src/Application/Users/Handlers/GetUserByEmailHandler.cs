@@ -1,22 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Application.Common;
 using Application.Users.DTOs.Response;
 using Application.Users.Queries;
 using Application.Users.Services.Base;
 using AutoMapper;
-using Core.Users.Entities.Base;
 using MediatR;
 
 namespace Application.Users.Handlers
 {
-    public class GetUserByEmailHandler : IRequestHandler<GetUserByEmailQuery, Result<UserResponse>>
+    public class GetUserByEmailHandler : IRequestHandler<GetUserByEmailQuery, UserResponse>
     {
         private readonly IUserService userService;
         private readonly IMapper mapper;
-
 
         public GetUserByEmailHandler(IUserService userService, IMapper mapper)
         {
@@ -24,22 +19,11 @@ namespace Application.Users.Handlers
             this.mapper = mapper;
         }
 
-        public async Task<Result<UserResponse>> Handle(GetUserByEmailQuery request, CancellationToken cancellationToken)
+        public async Task<UserResponse> Handle(GetUserByEmailQuery request, CancellationToken cancellationToken)
         {
-            var getUserResult = await this.userService.GetUserByEmailAsync(request.Email);
-            if (getUserResult.IsSuccess == false)
-            {
-                return Result<UserResponse>.Failure(getUserResult.Errors
-                ?? new List<string>() { "Unknown error at getting user" });
-            }
-
-            var user = getUserResult.Value;
-            if (user == null)
-            {
-                return Result<UserResponse>.Failure("User not found");
-            }
+            var user = await userService.GetUserByEmailAsync(request.Email);
             var mapped = mapper.Map<UserResponse>(user);
-            return Result<UserResponse>.Success(mapped);
+            return mapped;
         }
     }
 }

@@ -1,6 +1,8 @@
-using Application.Common;
+using Application.Common.Exceptions;
+using Application.Roles.Exceptions;
 using Application.Roles.Services.Base;
 using AutoMapper;
+using Core.Roles.Entities;
 using Core.Roles.Entities.Base;
 using Infrastructure.Roles.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -23,89 +25,90 @@ namespace Infrastructure.Roles.Services
             this.mapper = mapper;
         }
 
-        public async Task<Result<IRole>> CreateAsync(string roleName)
+        public async Task<IRole> CreateAsync(string roleName)
         {
-            var role = new ApplicationRole { Name = roleName };
+            var role = new ApplicationRole { Name = roleName, NormalizedName = roleName.ToUpper() };
             var createResult = await roleManager.CreateAsync(role);
             if (createResult.Succeeded == false)
             {
                 var errors = createResult.Errors.Select(e => e.Description);
-                return Result<IRole>.Failure(errors);
+                throw new BadRequestException(errors);
             }
             var created = await roleManager.FindByNameAsync(roleName);
             if (created == null)
             {
-                return Result<IRole>.Failure("Role creation failed.");
+                throw new RoleNotFoundException(roleName);
             }
-            return Result<IRole>.Success(created);
+            return created;
         }
 
-        public async Task<Result<bool>> DeleteAsync(Guid roleId)
+        public async Task DeleteAsync(Guid roleId)
         {
             var role = await roleManager.FindByIdAsync(roleId.ToString());
             if (role == null)
             {
-                return Result<bool>.Failure("Role not found.");
+                throw new RoleNotFoundException(roleId);
             }
             var result = await roleManager.DeleteAsync(role);
             if (result.Succeeded == false)
             {
                 var errors = result.Errors.Select(e => e.Description);
-                return Result<bool>.Failure(errors);
+                throw new BadRequestException(errors);
             }
-            return Result<bool>.Success(true);
         }
 
-        public async Task<Result<IEnumerable<IRole>>> GetAllAsync()
+        public async Task<IEnumerable<IRole>> GetAllAsync()
         {
             var roles = await roleManager.Roles.ToListAsync();
-            return Result<IEnumerable<IRole>>.Success(roles);
+            return roles;
         }
 
-        public async Task<Result<IEnumerable<IRole>>> GetRoleByIdAsync(IEnumerable<Guid> ids)
+        public async Task<IEnumerable<IRole>> GetRoleByIdAsync(IEnumerable<Guid> ids)
         {
             var roles = await roleManager.Roles
                 .Where(r => ids.Contains(r.Id))
                 .ToListAsync();
 
-            if (roles.Any() == false)
+            if (roles.Count != ids.Count())
             {
-                return Result<IEnumerable<IRole>>.Failure("Roles not found");
+                var notFoundIds = ids.Except(roles.Select(r => r.Id));
+                throw new RoleNotFoundException($"Roles with the following IDs were not found: {string.Join(", ", notFoundIds)}");
             }
             
-            return Result<IEnumerable<IRole>>.Success(roles);
+            return roles;
         }
 
-        public async Task<Result<IRole>> GetRoleByIdAsync(Guid id)
+        public async Task<IRole> GetRoleByIdAsync(Guid id)
         {
             var role = await roleManager.FindByIdAsync(id.ToString());
             if (role == null)
             {
-                return Result<IRole>.Failure("Role not found");
+                throw new RoleNotFoundException(id);
             }
-            return Result<IRole>.Success(role);
+            return role;
         }
 
-        public async Task<Result<IEnumerable<IRole>>> GetRoleByNameAsync(IEnumerable<string> names)
+        public async Task<IEnumerable<IRole>> GetRoleByNameAsync(IEnumerable<string> names)
         {
             var roles = await roleManager.Roles
                 .Where(r => names.Contains(r.Name))
                 .ToListAsync();
-            if (roles.Any() == false)
+            if (roles.Count != names.Count())
             {
-                return Result<IEnumerable<IRole>>.Failure("Roles not found");
+                var notFoundMames = names.Except(roles.Select(r => r.Name));
+                throw new RoleNotFoundException($"Roles with the following names were not found: {string.Join(", ", notFoundMames)}");
             }
-            return Result<IEnumerable<IRole>>.Success(roles);
+            return roles;
         }
 
-        public async Task<Result<IRole>> GetRoleByNameAsync(string name)
+        public async Task<IRole> GetRoleByNameAsync(string name)
         {
             var role = await roleManager.FindByNameAsync(name);
             if (role == null)
             {
-                return Result<IRole>.Failure("Role not found");
+                throw new RoleNotFoundException(name);
             }
-            return Result<IRole>.Success(role);
+            return role;
         }
     }
 }

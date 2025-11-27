@@ -6,6 +6,6 @@ namespace Application.Users.Commands
 {
     public class UpdateUserCommand : IRequest<UserResponse>
     {
-        public required UpdateUserRequest request { get; set; }
+        public required UpdateUserRequest Request { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using Application.Users.DTOs.Request;
 using Application.Users.DTOs.Response;
 using Core.Users.Entities.Base;
 using Core.Users.Entities;
+using Application.Users.Events;
 
 namespace Application.Users.Mappings
 {
@@ -12,6 +13,8 @@ namespace Application.Users.Mappings
         {
             CreateMap<UserResponse, JWTUserRequest>();
             CreateMap<IUser, UserResponse>();
+            CreateMap<IUser, UserCreatedEvent>();
+            CreateMap<IUser, UserDeletedEvent>();
         }
     }
 }

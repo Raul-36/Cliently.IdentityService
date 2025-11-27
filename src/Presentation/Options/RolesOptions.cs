@@ -7,6 +7,6 @@ namespace Presentation.Options
 {
     public class RolesOptions
     {
-        public required IEnumerable<string> RolesNames { get; set; }
+        public required IEnumerable<string> RoleNames { get; set; }
     }
 }

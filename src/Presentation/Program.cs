@@ -11,17 +11,18 @@ using Infrastructure.Roles.Entities;
 using Infrastructure.Roles.Services;
 using Infrastructure.Tokens.Options;
 using Infrastructure.Tokens.Services;
+using Cliently.IdentityService.Infrastructure.Messaging.Options; 
 using Infrastructure.UserRoles.Services;
 using Infrastructure.Users.Entities;
 using Infrastructure.Users.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using Presentation.Data;
 using Presentation.Extensions;
 using Presentation.Options;
+using Cliently.IdentityService.Infrastructure.Messaging.Services.Base;
+using Cliently.IdentityService.Infrastructure.Messaging.Services;
+using Infrastructure.Users.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,41 +41,32 @@ builder.Services.AddAutoMapper(
     typeof(Infrastructure.Users.Mappings.UsersMappingProfile).Assembly
 );
 
-// Configure Options
 builder.Services.Configure<FirstUsersOptions>(builder.Configuration.GetSection("FirstUsers"));
 builder.Services.Configure<RolesOptions>(builder.Configuration.GetSection("Roles"));
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.Configure<RabbitMQOptions>(builder.Configuration.GetSection("RabbitMQ"));
+builder.Services.Configure<UserQueuesOptions>(builder.Configuration.GetSection("UserQueues"));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 builder.Services.AddIdentityCore<ApplicationUser>()
     .AddRoles<ApplicationRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-using var scope = builder.Services.BuildServiceProvider().CreateScope();
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    if (dbContext.Database.GetPendingMigrations().Any())
-    {
-
-        dbContext.Database.Migrate();
-    }
-}
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISignInService, SignInService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 builder.Services.AddScoped<ITokenGeneratorService, TokenGeneratorService>();
+builder.Services.AddScoped<IProducer, RabbitMqProducer>();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
+
 
 app.UseHttpsRedirection();
 
@@ -86,16 +78,23 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+using var scope = app.Services.CreateScope();
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    if (dbContext.Database.GetPendingMigrations().Any())
+    {
+
+        dbContext.Database.Migrate();
+    }
+}
 using (var seedScope = app.Services.CreateScope())
 {
     var serviceProvider = seedScope.ServiceProvider;
     var roleService = serviceProvider.GetRequiredService<IRoleService>();
-    if ((await roleService.GetRoleByNameAsync("Admin")) is null)
-        await RoleSeeder.SeedRoles(serviceProvider);
+    await RoleSeeder.SeedRoles(serviceProvider);
 
     var userService = serviceProvider.GetRequiredService<IUserService>();
-    if ((await userService.GetAllUsersAsync()).Count() == 0)
-        await FirstUserSeeder.SeedUsers(serviceProvider);
+    await FirstUserSeeder.SeedUsers(serviceProvider);
 
 }
 app.Run();

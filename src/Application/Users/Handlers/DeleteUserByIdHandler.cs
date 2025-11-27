@@ -6,7 +6,7 @@ using MediatR;
 
 namespace Application.Users.Handlers
 {
-    public class DeleteUserByIdHandler : IRequestHandler<DeleteUserByIdCommand, bool>
+    public class DeleteUserByIdHandler : IRequestHandler<DeleteUserByIdCommand>
     {
         private readonly IUserService userService;
 
@@ -15,9 +15,9 @@ namespace Application.Users.Handlers
             this.userService = userService;
         }
 
-        public async Task<bool> Handle(DeleteUserByIdCommand request, CancellationToken cancellationToken)
+        public async Task Handle(DeleteUserByIdCommand request, CancellationToken cancellationToken)
         {
-            return await userService.DeleteUserByIdAsync(request.Id);
+         await userService.DeleteUserByIdAsync(request.Id);
         }
     }
 }

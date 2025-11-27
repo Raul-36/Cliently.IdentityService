@@ -77,7 +77,7 @@ namespace Presentation.Controllers
 
             try
             {
-                var command = new UpdateUserCommand { request = request };
+                var command = new UpdateUserCommand { Request = request };
                 var result = await mediator.Send(command);
                 return Ok(result);
             }
@@ -111,16 +111,9 @@ namespace Presentation.Controllers
                 return Forbid();
             }
 
-            try
-            {
-                var command = new DeleteUserByIdCommand { Id = id };
-                await mediator.Send(command);
-                return NoContent();
-            }
-            catch (UserNotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
+            var command = new DeleteUserByIdCommand { Id = id };
+            await mediator.Send(command);
+            return NoContent();
         }
     }
 }

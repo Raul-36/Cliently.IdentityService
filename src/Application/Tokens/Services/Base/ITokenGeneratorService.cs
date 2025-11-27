@@ -8,6 +8,6 @@ namespace Application.Tokens.Services.Base
 {
     public interface ITokenGeneratorService
     {
-        public string GenerateJWTToken(GenerateJWTTokenRequest request);
+        public string GenerateJWTToken(GenerateJWTTokenRequest Request);
     }
 }

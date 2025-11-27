@@ -13,6 +13,6 @@ namespace Application.Users.Services.Base
         Task<IEnumerable<IUser>> GetAllUsersAsync();
         Task<IUser> CreateUserAsync(CreateUserRequest user);
         Task<IUser> UpdateUserAsync(IUser user);
-        Task<bool> DeleteUserByIdAsync(Guid id);
+        Task DeleteUserByIdAsync(Guid id);
     }
 }

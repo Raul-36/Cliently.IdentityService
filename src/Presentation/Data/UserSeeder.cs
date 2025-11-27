@@ -7,6 +7,7 @@ using Presentation.Options;
 using System.Threading.Tasks;
 using System;
 using Application.Common.Exceptions;
+using Application.Users.Queries;
 
 namespace Presentation.Data
 {
@@ -17,6 +18,9 @@ namespace Presentation.Data
             var options = serviceProvider.GetRequiredService<IOptions<FirstUsersOptions>>();
             var mediator = serviceProvider.GetRequiredService<IMediator>();
             var logger = serviceProvider.GetRequiredService<ILogger<FirstUsersOptions>>();
+
+            if ((await mediator.Send(new GetAllUsersQuery())).Count() != 0)
+                return;
 
             if (options.Value.Users == null)
             {

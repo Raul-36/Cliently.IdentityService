@@ -6,6 +6,6 @@ namespace Application.Identity.Commands
 {
     public class SignInCommand : IRequest<IdentityResponse>
     {
-        public required SignInRequest request { get; set; }
+        public required SignInRequest Request { get; set; }
     }
 }

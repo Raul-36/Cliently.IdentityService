@@ -21,9 +21,9 @@ namespace Application.Users.Handlers
 
         public async Task<UserResponse> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await userService.GetUserByIdAsync(request.request.Id);
+            var user = await userService.GetUserByIdAsync(request.UpdateUser.Id);
 
-            user.Email = request.request.Email;
+            user.Email = request.UpdateUser.Email;
 
             var updatedUser = await userService.UpdateUserAsync(user);
 

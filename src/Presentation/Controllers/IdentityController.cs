@@ -42,7 +42,7 @@ namespace Presentation.Controllers
         {
             try
             {
-                var command = new SignInCommand { request = request };
+                var command = new SignInCommand { SignIn = request };
                 var result = await mediator.Send(command);
                 return Ok(result);
             }

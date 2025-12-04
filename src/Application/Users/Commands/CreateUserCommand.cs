@@ -6,6 +6,6 @@ namespace Application.Users.Commands
 {
     public class CreateUserCommand : IRequest<UserResponse>
     {
-        public required CreateUserRequest Request { get; set; }
+        public required CreateUserRequest CreateUser { get; set; }
     }
 }

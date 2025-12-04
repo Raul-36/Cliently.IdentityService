@@ -9,6 +9,8 @@ using Application.Users.DTOs.Request;
 using System.Security.Claims;
 using Application.Users.Exceptions;
 using Application.Common.Exceptions;
+using Presentation.Options;
+using Presentation.Consts;
 
 namespace Presentation.Controllers
 {
@@ -25,7 +27,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet]
-        [Authorize (Roles = "Admin")]
+        [Authorize (Roles = DefaultRoles.Admin)]
         public async Task<IActionResult> GetAllUsers()
         {
             try
@@ -77,7 +79,7 @@ namespace Presentation.Controllers
 
             try
             {
-                var command = new UpdateUserCommand { Request = request };
+                var command = new UpdateUserCommand { UpdateUser = request };
                 var result = await mediator.Send(command);
                 return Ok(result);
             }

@@ -21,7 +21,7 @@ namespace Application.Users.Handlers
 
         public async Task<UserResponse> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await userService.CreateUserAsync(request.request);
+            var user = await userService.CreateUserAsync(request.CreateUser);
             var mapped = mapper.Map<UserResponse>(user);
             return mapped;
         }

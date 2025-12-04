@@ -9,6 +9,7 @@ using Core.Roles.Entities;
 using Presentation.Options;
 using Application.Roles.Services.Base;
 using Application.Roles.Exceptions;
+using Presentation.Consts;
 
 namespace Presentation.Data
 {
@@ -16,13 +17,16 @@ namespace Presentation.Data
     {
         public static async Task SeedRoles(IServiceProvider serviceProvider)
         {
-            var options = serviceProvider.GetRequiredService<IOptions<RolesOptions>>();
-            var roleService = serviceProvider.GetRequiredService<IRoleService>();
+            var defoltRolesType = typeof(DefaultRoles);
+            var roleNames = defoltRolesType.GetFields()
+                .Select(f => f.GetValue(null)?.ToString())
+                .Where(rn => rn != null);
 
-            var roleNames = options.Value.RoleNames;
+            var roleService = serviceProvider.GetRequiredService<IRoleService>();
+            
             try
             {
-                await roleService.GetRoleByNameAsync("Admin");
+                await roleService.GetRoleByNameAsync(DefaultRoles.Admin);
                 return;
             }
             catch(RoleNotFoundException)
@@ -32,6 +36,8 @@ namespace Presentation.Data
 
                 foreach (var roleName in roleNames)
                 {   
+                    if (roleName == null) 
+                        throw new InvalidOperationException("No roles configured to seed.");
                     await roleService.CreateAsync(roleName);
                 }
             }

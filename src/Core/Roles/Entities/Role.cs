@@ -9,6 +9,6 @@ namespace Core.Roles.Entities
     public class Role : IRole
     {
         public Guid Id { get; set; }
-        public required string Name { get; set; }
+        public string? Name { get; set; }
     }
 }

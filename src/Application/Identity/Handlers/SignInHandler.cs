@@ -43,7 +43,7 @@ namespace Application.Identity.Handlers
         {
             var getUserByEmailQuery = new GetUserByEmailQuery
             {
-                Email = request.request.Email
+                Email = request.SignIn.Email
             };
 
             UserResponse user;
@@ -56,7 +56,7 @@ namespace Application.Identity.Handlers
                 throw new SignInException();
             }
 
-            var passwordCheck = await signInService.PasswordSignInAsync(user.Email, request.request.Password);
+            var passwordCheck = await signInService.PasswordSignInAsync(user.Email, request.SignIn.Password);
             if (passwordCheck == false)
                 throw new SignInException();
 

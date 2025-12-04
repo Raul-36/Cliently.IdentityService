@@ -42,7 +42,6 @@ builder.Services.AddAutoMapper(
 );
 
 builder.Services.Configure<FirstUsersOptions>(builder.Configuration.GetSection("FirstUsers"));
-builder.Services.Configure<RolesOptions>(builder.Configuration.GetSection("Roles"));
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.Configure<RabbitMQOptions>(builder.Configuration.GetSection("RabbitMQ"));
 builder.Services.Configure<UserQueuesOptions>(builder.Configuration.GetSection("UserQueues"));

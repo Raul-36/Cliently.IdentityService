@@ -35,7 +35,7 @@ namespace Application.Identity.Handlers
         {
             var createUserCommand = new CreateUserCommand
             {
-                request = request.CreateUser
+                CreateUser = request.CreateUser
             };
 
             var user = await mediator.Send(createUserCommand, cancellationToken);

@@ -26,6 +26,7 @@ using Infrastructure.Users.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 builder.Services.InitSwagger();
 builder.Services.InitAuth(builder.Configuration);   
 
@@ -70,6 +71,7 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 
 app.UseRouting();
+
 
 app.UseAuthentication();
 app.UseAuthorization();
